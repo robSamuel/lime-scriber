@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { config } from "./config.js";
+import { HttpError } from "./errors/http-error.js";
 import { healthRouter } from "./routes/health.js";
 import { notesRouter } from "./routes/notes.js";
 import { patientsRouter } from "./routes/patients.js";
@@ -25,6 +26,10 @@ app.use(
     res: express.Response,
     _next: express.NextFunction,
   ) => {
+    if (err instanceof HttpError) {
+      res.status(err.statusCode).json({ error: err.message });
+      return;
+    }
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   },

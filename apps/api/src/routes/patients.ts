@@ -13,3 +13,20 @@ patientsRouter.get("/", async (_req, res, next) => {
     next(error);
   }
 });
+
+patientsRouter.get("/:id", async (req, res, next) => {
+  try {
+    const patient = await prisma.patient.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!patient) {
+      res.status(404).json({ error: "Patient not found" });
+      return;
+    }
+
+    res.json(patient);
+  } catch (error) {
+    next(error);
+  }
+});
