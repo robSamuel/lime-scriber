@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InputType {
+  TEXT
+  AUDIO
+}
+
+model Patient {
+  id          String   @id @default(cuid())
+  externalId  String   @unique @map("external_id")
+  fullName    String   @map("full_name")
+  dateOfBirth DateTime @map("date_of_birth")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  notes Note[]
+
+  @@map("patients")
+}
+
+model Note {
+  id               String    @id @default(cuid())
+  patientId        String    @map("patient_id")
+  inputType        InputType @map("input_type")
+  rawInput         String    @map("raw_input")
+  transcription    String
+  processedContent String?   @map("processed_content")
+  preview          String
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("notes")
+}
