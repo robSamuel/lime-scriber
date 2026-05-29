@@ -28,6 +28,7 @@ services:
       - ./apps/api:/app/apps/api
       - /app/node_modules
       - /app/apps/api/node_modules
+      - uploads_data:/app/apps/api/uploads
 
   web:
     build:
@@ -46,3 +47,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

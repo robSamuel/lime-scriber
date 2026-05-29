@@ -39,14 +39,34 @@ PostgreSQL is only reachable inside the Docker network (port 5432 is not publish
 | `npm run db:migrate` | Run Prisma migrations (API workspace) |
 | `npm run db:seed` | Seed mock patients (API workspace) |
 
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `OPENAI_API_KEY` | For audio | OpenAI API key for Whisper transcription; audio requests return `503` if unset |
+| `PORT` | No | API port (default `3001`) |
+| `CORS_ORIGIN` | No | Allowed browser origin (default `http://localhost:5173`) |
+| `VITE_API_URL` | No | API base URL for the web app |
+
+Audio uploads are stored under `apps/api/uploads/` (Docker uses a named volume `uploads_data`).
+
+### Create an audio note
+
+```bash
+curl -X POST http://localhost:3001/notes \
+  -F "patientId=<patient-id>" \
+  -F "inputType=AUDIO" \
+  -F "audio=@/path/to/recording.mp3"
+```
+
 ## Assumptions
 
-- Scaffold only: health check, patient list, and web smoke-test page.
-- OpenAI transcription/summarization and S3 storage are deferred to the next phase.
+- Audio files are stored locally under `uploads/` (S3 is optional future work).
+- SOAP structuring (`processedContent`) is implemented in a follow-up PR.
 
 ## Next steps
 
-- [ ] `POST /notes` with text and audio upload (multer)
-- [ ] OpenAI Whisper + clinical note structuring
-- [ ] Note list and detail UI
-- [ ] Optional AWS S3 for audio files
+- [ ] SOAP structuring via GPT (PR-3)
+- [ ] Note list, detail, and create-note UI (PR-4)
+- [ ] README polish and video walkthrough (PR-5)
