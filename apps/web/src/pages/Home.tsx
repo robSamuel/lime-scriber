@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getHealth, getPatients, type Patient } from "../api/client.ts";
+import { getHealth, getPatients } from "../api/client.ts";
+import type { Patient } from "../types/index.ts";
 
 export default function Home() {
   const [health, setHealth] = useState<string | null>(null);
@@ -58,9 +59,10 @@ export default function Home() {
           </ul>
         )}
       </section>
-      <p>
-        <Link to="/notes">Notes (stub)</Link>
-      </p>
+      <nav className="nav-links">
+        <Link to="/notes">All notes</Link>
+        <Link to="/notes/new">Create note</Link>
+      </nav>
     </main>
   );
 }
