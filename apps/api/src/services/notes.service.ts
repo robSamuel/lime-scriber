@@ -1,12 +1,13 @@
 import path from "node:path";
 import { InputType } from "@prisma/client";
+import { isOpenAiConfigured } from "../config.js";
 import { prisma } from "../db.js";
 import { HttpError } from "../errors/http-error.js";
 import type {
   CreateAudioNoteInput,
   CreateTextNoteInput,
 } from "../schemas/note.schema.js";
-import { transcribeAudio } from "./ai.service.js";
+import { structureNote, transcribeAudio } from "./ai.service.js";
 
 const PREVIEW_MAX_LENGTH = 120;
 
@@ -44,18 +45,33 @@ async function assertPatientExists(patientId: string) {
   }
 }
 
+async function tryStructureNote(transcription: string): Promise<string | null> {
+  if (!isOpenAiConfigured()) {
+    return null;
+  }
+
+  try {
+    return await structureNote(transcription);
+  } catch (error) {
+    console.error("SOAP structuring failed (non-blocking):", error);
+    return null;
+  }
+}
+
 export async function createTextNote(data: CreateTextNoteInput) {
   await assertPatientExists(data.patientId);
 
-  const preview = buildPreview(data.rawInput);
+  const transcription = data.rawInput;
+  const processedContent = await tryStructureNote(transcription);
+  const preview = buildPreview(transcription);
 
   return prisma.note.create({
     data: {
       patientId: data.patientId,
       inputType: InputType.TEXT,
       rawInput: data.rawInput,
-      transcription: data.rawInput,
-      processedContent: null,
+      transcription,
+      processedContent,
       preview,
     },
     select: noteSelect,
@@ -69,6 +85,7 @@ export async function createAudioNote(
   await assertPatientExists(data.patientId);
 
   const transcription = await transcribeAudio(filePath);
+  const processedContent = await tryStructureNote(transcription);
   const preview = buildPreview(transcription);
   const rawInput = path.join("uploads", path.basename(filePath));
 
@@ -78,7 +95,7 @@ export async function createAudioNote(
       inputType: InputType.AUDIO,
       rawInput,
       transcription,
-      processedContent: null,
+      processedContent,
       preview,
     },
     select: noteSelect,
