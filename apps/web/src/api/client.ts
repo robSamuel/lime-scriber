@@ -1,3 +1,7 @@
+import type { Patient } from "../types/index.ts";
+
+export type { Patient };
+
 const baseUrl = import.meta.env.VITE_API_URL;
 
 export async function getHealth(): Promise<{ status: string }> {
@@ -7,14 +11,6 @@ export async function getHealth(): Promise<{ status: string }> {
   }
   return res.json() as Promise<{ status: string }>;
 }
-
-export type Patient = {
-  id: string;
-  externalId: string;
-  fullName: string;
-  dateOfBirth: string;
-  createdAt: string;
-};
 
 export async function getPatients(): Promise<Patient[]> {
   const res = await fetch(`${baseUrl}/patients`);
