@@ -2,6 +2,7 @@ import { createReadStream } from "node:fs";
 import OpenAI from "openai";
 import { config, isOpenAiConfigured } from "../config.js";
 import { HttpError } from "../errors/http-error.js";
+import { SOAP_SYSTEM_PROMPT } from "../prompts/soap.js";
 
 const openai = new OpenAI({ apiKey: config.OPENAI_API_KEY || "not-configured" });
 
@@ -26,4 +27,21 @@ export async function transcribeAudio(filePath: string): Promise<string> {
       "Audio transcription is temporarily unavailable. Check OPENAI_API_KEY and try again.",
     );
   }
+}
+
+export async function structureNote(transcription: string): Promise<string> {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: SOAP_SYSTEM_PROMPT },
+      { role: "user", content: transcription },
+    ],
+  });
+
+  const content = completion.choices[0]?.message.content;
+  if (!content) {
+    throw new Error("Empty response from structureNote");
+  }
+
+  return content;
 }
