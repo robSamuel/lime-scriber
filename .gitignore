@@ -1,6 +1,7 @@
 node_modules
 dist
 .env
-uploads
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
 *.log
 .DS_Store
